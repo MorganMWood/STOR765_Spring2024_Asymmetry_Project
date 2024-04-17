@@ -1,0 +1,54 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+My set-up chunk:
+```{r setup}
+library(readxl) #for reading excel
+```
+
+Read in the excel file of differences. This gives us T1-T2 values for each coordinate for each landmark as well as the euclidean distance of T1 and T2 for each landmark.
+```{r read_in_data}
+angles <- as.data.frame(read_excel("angles.xlsx"))
+```
+
+This extracts the euclidean distances along with the patient identifiers.
+```{r just_distances}
+numcolmax <- length(t1_minus_t2[1, ]) #original number of columns
+
+#str(angles) #look at; I commented this out using "#"; you can remove this
+
+```
+We have 26 patients and 6 angles; there is no missing data.
+
+This will be a basic exploratory analysis of angles.
+```{r eda}
+as.data.frame(cbind(minimum = sapply(angles,min, na.rm = TRUE), maximum =  sapply(angles,max, na.rm = TRUE), average = sapply(angles,mean, na.rm = TRUE), median = sapply(angles,median, na.rm = TRUE))) #summary statistics
+
+for(angle in 2:7){
+  plot(cos(angles[, angle]/180*pi), as.numeric(sin(angles[, angle]/180*pi)), ylim = c(-1,1), xlim = c(-1,1))
+} #here I plot each angle on the unit circle
+```
+
+As each angle is relatively close to each other, this suggests that we can treat the angles as numbers.
+
+
+Now let's look at asymmetries
+```{r compute_asymmetries}
+asym_angles <- angles[ , 1]
+for (landmark in 1:3) {
+   asym_angles <- as.data.frame(cbind(asym_angles, as.vector(abs(angles[, (2*landmark)] - angles[, (2*landmark + 1)]))))
+}
+
+names(asym_angles) <- names(angles[ , c(1, seq(2, 6, by = 2))])
+```
+
+This will be a basic exploratory analysis of asymmetries.
+```{r eda_asymmetries}
+as.data.frame(cbind(minimum = sapply(asym_angles, min, na.rm = TRUE), maximum =  sapply(asym_angles, max, na.rm = TRUE), average = sapply(asym_angles, mean, na.rm = TRUE), median = sapply(asym_angles, median, na.rm = TRUE))) #summary statistics
+```
+
+Now, note that the sample average of asymmetries for all sets of angles is not very large. On average, we have asymmetries of 1.4, 4.5, and 5.4 degrees.
+

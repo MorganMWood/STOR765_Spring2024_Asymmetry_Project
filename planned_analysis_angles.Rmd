@@ -1,0 +1,159 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r setup}
+library(readxl) #for reading excel
+```
+
+Read in and clean data according to eda findings.
+
+```{r read_in_data}
+angles <- as.data.frame(read_excel("angles.xlsx"))
+
+numcolmax <- length(angles[1, ]) #original number of columns
+
+
+#Dataframe for asymmetries, named after the left landmark
+
+asym_angles <- angles[ , 1]
+for (landmark in 1:3) {
+   asym_angles <- as.data.frame(cbind(asym_angles, as.vector(abs(angles[, (2*landmark)] - angles[, (2*landmark + 1)]))))
+}
+
+names(asym_angles) <- names(angles[ , c(1, seq(2, 6, by = 2))])
+
+```
+
+Below I start on analysis I; first I need to do some manipulating of data so that it is in the correct form
+
+```{r analysis_I_plot}
+
+for (landmark_plot in 1:3){
+  plot(angles[ , 2*landmark_plot], angles[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,40), xlim = c(0,40), #axis
+       ylab = "Right Side", xlab = "Left Side", main = names(asym)[landmark_plot + 1], #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 5, b = 1, lty = 2, col = "orange")
+  abline(a = 15, b = 1, lty = 2, col = "red")
+  abline(a = -5, b = 1, lty = 2, col = "orange")
+  abline(a = -15, b = 1, lty = 2, col = "red")
+}
+
+```
+
+Asymmetry would be seen as observations far from the green dotted line.
+
+green: no asymmetry; orange: 5 degrees of asymmetry; red: 15 degrees of asymmetry.
+
+There looks like there are some asymmetries here in some landmarks; however, this asymmetry isn't very large. On average, we have asymmetries of 1.4, 4.5, and 5.4 degrees.
+
+I am unsure of what kind of measurement error is typical in this scenario. Thus, rather than only formally testing that this asymmetry is beyond a set point, I will give confidence intervals for the average asymmetry for each set of angles.
+
+
+Now I will formally test if the average asymmetry of any landmark is greater than 5 degrees (this can be adjusted to other values).
+
+I begin by giving p-values of this test for each angle. Then, a confidence interval for the average absolute asymmetry is given.
+
+```{r analysis_I_test}
+for(landmark in 1:3){
+  print(t.test(asym_angles[ , landmark + 1], alternative = "greater",
+         mu = 5)$p.value) #This '1' is the value that you may want to change depending on what you would like to test
+  print(t.test(asym_angles[ , landmark + 1])$conf.int[c(1,2)])
+}
+
+```
+
+The test does not suggest that there are any significant asymmetries (even before correcting for multiple tests). However, I would suggest redoing the analysis with a threshold of practical significance rather than necessarily using the value of 5 degrees.
+
+
+Finally, for each angle set separately, we look at the absolute asymmetry for each individual and model this as a linear function of different demographics and surgical measures. 
+
+
+```{r read_in_regression_data}
+demographics <- as.data.frame(read_excel("demographics.xlsx"))
+
+demographics[ , 4] <- as.factor(demographics[ , 4])
+demographics[ , 5] <- as.factor(demographics[ , 5])
+demographics[ , 7] <- as.factor(demographics[ , 7])
+demographics[ , 8] <- as.factor(demographics[ , 8])
+demographics[ , 9] <- as.factor(demographics[ , 9])
+demographics[ , 10] <- as.factor(demographics[ , 10])
+
+demographics <- cbind(demographics, asym_angles)
+
+```
+
+```{r correlations}
+
+# M = cor(removed_NA_patients[,-c(1,11, 4, 5, 7, 8, 9, 10)]) #removing patient identifiers and categorical variables
+# corrplot(M, method = 'color', order = 'FPC', type = 'lower', diag = FALSE)
+
+
+```
+
+I now run a regression model to predict the absolute asymmetry within each angle. I handle highly correlated variables by adding interaction terms (for age) or removing one of the variables (for the two categorical variables).
+
+```{r regression_models}
+
+
+pvalues_coeff <- vector(mode = "numeric", length = 10)
+coeff <- vector(mode = "numeric", length = 10)
+
+for (landmark in 12:14) {
+
+  small_dataset <- demographics[ , c(2:10)]
+  first_model <- lm(demographics[, landmark] ~ . + `T1 age`:`T2 age`-`PMD right`-`right posterior TAD # cortices`, data = small_dataset)
+
+  print(summary(first_model))
+  
+  pvalues_coeff <- cbind(pvalues_coeff, summary(first_model)$coefficients[,4])
+  
+  coeff <- cbind(coeff, summary(first_model)$coefficients[,1])
+  
+}
+
+rowSums(pvalues_coeff)
+rowSums(coeff)/3
+
+```
+
+Just to try it, I next try a backwards selection technique based on the sum of the p-values. This is not common practice, and is more of an exploratory measure.
+
+I first remove age.
+```{r regression_models_removed_age}
+pvalues_coeff <- vector(mode = "numeric", length = 7)
+
+coeff <- vector(mode = "numeric", length = 7)
+
+for (landmark in 12:14) {
+
+  small_dataset <- demographics[ , c(2:10)]
+  first_model <- lm(demographics[, landmark] ~ . -`T1 age`-`T2 age`-`PMD right`-`right posterior TAD # cortices`, data = small_dataset)
+
+  print(summary(first_model))
+  
+  pvalues_coeff <- cbind(pvalues_coeff, summary(first_model)$coefficients[,4])
+  
+  coeff <- cbind(coeff, summary(first_model)$coefficients[,1])
+  
+  
+}
+
+rowSums(pvalues_coeff)
+
+rowSums(coeff)/3
+
+```
+
+
+No linear models are significant. Just to get a rough idea if perhaps one explanatory variable may be worth looking into further, I summed the p-values across all models. The rough motivation is that if one of these explanatory variables are predictive of asymmetry in one landmark, it should also be predictive in many landmarks. Thus, perhaps if one variable shows more promise than others across all of the models, it can be looked into further. Perhaps, No. of turns is worth looking into further; though it is not significant in any model.
+
+
+
+
+

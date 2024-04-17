@@ -1,0 +1,291 @@
+---
+title: "Teeth Asymmetry After MARPE"
+author: 
+  - "Written by: Morgan Wood"
+  - "Client: Richard Andrews"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: pdf_document
+abstract: |
+  This report aims to investigate left-side versus right-side teeth asymmetry caused by miniscrew-assisted rapid palatal expansion (MARPE). Using data provided, this analysis
+  
+  (1) Provides evidence that there is not substantial asymmetry cause by MARPE,
+  
+  (2) Suggests that the measurement error caused while locating landmarks is small, and
+  
+  (3) Suggests further research into the relationship of teeth extraction and asymmetry.
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+library(tidyverse)
+library(readxl) #for reading excel
+library(corrplot)
+```
+
+```{r read_in_data_distances, include=FALSE}
+t1_minus_t2 <- read_excel("t1_minus_t2.xlsx")
+
+
+
+#This extracts the euclidean distances along with the patient identifiers.
+
+numcolmax <- length(t1_minus_t2[1, ]) #original number of columns
+distances <- as.data.frame(t1_minus_t2[ , c(1, seq(5, numcolmax, by = 4))]) #extracting, turning into dataframe
+
+#str(distances) #look at; I commented this out using "#"; you can remove this
+
+
+
+#Now I clean the data
+
+#columns were not in order (left and right were not necessarily beside each other); fixed using sort
+
+distances <- distances[ , c(1, order(names(distances[, 2:45])) + 1)] #sorting, not including the first column
+
+#str(distances) #look at; manually sorting it is; I commented this out using "#"; you can remove this
+
+distances_sorted <- distances[ , c(1:20, 22, 21, 23, 24, 27, 25, 28, 26, 29, 32, 35, 30, 33, 31, 34, 36, 40, 37, 41, 38, 42, 39, 43, 44, 45)] #here I am sorting manually; this could be rearranged in excel as well before starting
+
+#str(distances_sorted) #look at; it looks good now
+
+# distances_sorted$k_r_dist[22] <- NA #replacing extreme outlier with NA
+# 
+# distances_sorted$k_l_dist[22] <- NA #paired observation
+# 
+# distances_sorted$u6_l_furc_dist[19] <- NA #replacing extreme outlier with NA
+# 
+# distances_sorted$u6_r_furc_dist[19] <- NA #paired observation
+
+
+
+#Dataframe for asymmetries, named after the left landmark
+
+asym <- distances_sorted[ , 1]
+for (landmark in 1:22){
+   asym <- as.data.frame(cbind(asym, as.vector(abs(distances_sorted[, (2*landmark)] - distances_sorted[, (2*landmark + 1)]))))
+}
+
+names(asym) <- names(distances_sorted[ , c(1, seq(2, 44, by = 2))])
+
+```
+
+```{r read_in_data_angles, include=FALSE}
+angles <- as.data.frame(read_excel("angles.xlsx"))
+
+numcolmax <- length(angles[1, ]) #original number of columns
+
+
+#Dataframe for asymmetries, named after the left landmark
+
+asym_angles <- angles[ , 1]
+for (landmark in 1:3) {
+   asym_angles <- as.data.frame(cbind(asym_angles, as.vector(abs(angles[, (2*landmark)] - angles[, (2*landmark + 1)]))))
+}
+
+names(asym_angles) <- names(angles[ , c(1, seq(2, 6, by = 2))])
+
+```
+# 1. Overview
+
+This report focuses on teeth asymmetry caused by MARPE, a surgical treatment used to dsafjskajfk. Within this report, we focus on the asymmetry of each patient's left side change verses right side change resulting from treatment. This change is measured in both euclidean distance and in angles which was provided by the client.
+
+The necessary data for this planned analysis, descriptive variables of each patient, euclidean distances, and angles, were isolated from the excel workbook proved. The data used can be found in the github repository under the excel sheet 'demographics.xlxs', 't1\_minus\_t2.xlsx', and 'angles.xlxs', respectively. The data found here is the corrected data discussed through email. Also as discussed, all r code used in the analysis can be found on the github repository as well along with comments on how to adapt the code for future data. A quick description of the rmarkdown files can be found in Appendix C.
+
+To measure the change in both the left and right side of each patients' teeth, landmarks (22 on the left side and a corresponding 22 on the right side) were identified and tracked. This results in 22 euclidean distances and three (rotational) angles for each side. 
+
+Data from 26 patients is analyzed which consists of, for each patient,
+
+* descriptive variables: age pre-treatment, age post-treatment, sex, extractions of teeth (converted to: 'yes' or 'no'), No. of turns, PMD left, PMD right, left posterior TAD #cortices, right posterior TAD #cortices,
+
+* euclidean distances for 22 pairs of landmarks (44 euclidean distances total), and
+
+* three paired angle (rotation) measurements (6 angles total).
+
+(Comment for presentation: The client was supposed to send over euclidean distances (movements) and angle measurements; He sent over a huge spreadsheet with all kinds of things including dot products of landmarks' location pre and post treatment, which I think he believed was angles? There was also rotation measurements which were angles, so I used this as my "angles" for analysis. )
+
+We begin with looking at asymmetry in euclidean distances in Section 2 and then look at asymmetry in angles in Section 3. Each section looks first to measure the amount of average asymmetry using either statistical tests or confidence intervals. Each identifying of a landmark is known to possibly be inaccurate. Thus, some measured asymmetry between the left and right side may be due to measurement error rather than true asymmetry. Thus, we will be testing for substantial asymmetry (defined in Section 2 for euclidean distances and Section 3 for angles). Finally, asymmetry is modeled using the descriptive variables for each patient.
+
+This report concludes with a three-part Appendix. Appendix A contains extra figures which are referenced during the main report. Appendix B contains a discussion of the permutation tests we originally planned and the "washing out" worry that was discussed through email. Finally, Appendix C contains a short description of the files in the github repository.
+
+
+# 2. Asymmetry in Movement Change
+
+For each patient's landmark, the total change in location is recorded as a euclidean distance. For example, if a landmark was at location $(x_0, y_0, z_0)$ pre-treatment and $(x_1, y_1, z_1)$ post-treatment, the euclidean distance for that landmark is recorded as
+$$d=\sqrt{(x_1-x_0)^2+(y_1-y_0)^2+(z_1-z_0)^2},$$
+which we refer to as *movement* of that landmark.
+
+
+As landmarks come in pairs (left and right side), we record 22 total pairs of movement. We write each pair of movement as $(d_{j,n}^l, d_{j,n}^r)$ for patient $n$'s $j$th landmark. 
+
+The *asymmetry in movement* of landmark $j$ for patient $n$ is the absolute difference of this movements
+$$A_{j,n}=\left| d_{j,n}^l - d_{j,n}^r \right|.$$
+Asymmetry is considered substantial if it is more than 2mm. We will test if there is substantial asymmetry in Section 2.1. In Section 2.2, we will model this asymmetry as a function of each patient's descriptive variables.
+
+## 2.1 Testing for Substantial Asymmetry in Movement
+
+As discussed in Section 1, there is believed to be some uncertainty in the identification of landmarks, and thus uncertainty in the measurement of movements. Because of this, and because of practical significance, we will consider 2mm to be the threshold for substantial asymmetry. 
+
+In Figure 1 below, asymmetry is explored graphically. The landmark pairs with the lowest and highest average asymmetry are displayed. This corresponds to the landmarks labeled "fsfd" and "fdsafds", respectively. Each point on the figure corresponds to a patient with the x-coordinate corresponding with the left side movement and the y-coordinate corresponding with the right side movement.
+
+```{r two_landmark_plots, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side movement for landmarks with lowest average asymmetry (left) and highest average asymmetry (right). The green line represents 0mm of asymmetry, the orange line 1mm, and the red line 2mm."}
+for (landmark_plot in c(5)){
+  plot(distances_sorted[ , 2*landmark_plot], distances_sorted[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,6), xlim = c(0,6), #axis
+       ylab = "Right Landmark", xlab = "Left Landmark", main = "Movements of l3_cusp", #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 1, b = 1, lty = 2, col = "orange")
+  abline(a = 2, b = 1, lty = 2, col = "red")
+  abline(a = -1, b = 1, lty = 2, col = "orange")
+  abline(a = -2, b = 1, lty = 2, col = "red")
+}
+for (landmark_plot in c(16)){
+  plot(distances_sorted[ , 2*landmark_plot], distances_sorted[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,6), xlim = c(0,6), #axis
+       ylab = "Right Landmark", xlab = "Left Landmark", main = "Movements of u4_ectopremolare", #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 1, b = 1, lty = 2, col = "orange")
+  abline(a = 2, b = 1, lty = 2, col = "red")
+  abline(a = -1, b = 1, lty = 2, col = "orange")
+  abline(a = -2, b = 1, lty = 2, col = "red")
+}
+```
+
+Within Figure 1, dotted lines represent different thresholds of asymmetry. The green line represents 0mm of asymmetry (no asymmetry), the orange line represents 1mm of asymmetry, and the red line represents 2mm of asymmetry (substantial asymmetry). Figures for all landmarks can be found in Appendix A.
+
+We see that few observations make the threshold for substantial asymmetry.In fact, we find that every landmark pair has average asymmetry less than the 2mm substantial asymmetry threshold. The highest average asymmetry was from the landmark pair "u4_ectopremolare" with average asymmetry of 1.53mm and the lowest average asymmetry was from the landmark pair "l3_cusp" with average asymmetry 0.34mm.
+
+As the average asymmetry for each sample is less than 2mm, we will not find significant evidence that there is substantial asymmetry for any landmark pair. In fact, even if the threshold for substantial asymmetry was reduced to 1mm, there is still not significant evidence. (The lowest p-value when testing if the average asymmetry is above 1mm is 0.0048 while a p-value of below 0.0023 would signal significant asymmetry after adjusting for multiple tests.)
+
+As for an additional takeaway, as asymmetry in movement is very low, this does suggest that the measurement errors are also low. 
+
+## 2.2 Modeling Movement Asymmetry
+
+We next consider modeling asymmetry in movement as a function of patients' descriptive variables. To do this, each landmark pair's asymmetry of movement is modeled separately using a linear model. Below are the descriptive variables considered.
+
+* age pre-treatment, age post-treatment, 
+* sex, 
+* extractions of teeth (converted to: 'yes' or 'no'), 
+* No. of turns, 
+* PMD left, PMD right, 
+* left posterior TAD \#cortices, and right posterior TAD \#cortices.
+
+It is worth noting that the age pre-treatment and age post-treatment are highly correlated (r=0.999). To deal with this correlation within the model, an interaction term between the ages was added.
+
+Additionally, the categorical variables PMD left & right (in agreement in 25 out of 26 patients), and left & right posterior TAD \#cortices (in agreement in 20 out of 26 patients) are also correlated. For these variables, the right measurements were removed from the model.
+
+We find that, in general, a linear model based on these descriptive variables is not a good fit for modeling asymmetry. There were no models with a p-value under 0.01, with the majority of p-values over 0.4. After adjusting for multiple tests, a p-value of 0.0023 is desirable evidence for a good fit. Full details on the model can be found in the "planned\_analysis\_euclidean\_distances.Rmd" file.
+
+Given the poor fit, we next attempt to remove variables that do not explain the asymmetry in order to get a better fitting model. To do this, we use a backwards selection technique based on the average p-values of covariates across all models. This was the chosen technique as it is intuitive that what patient descriptive variables are predictive for the asymmetry of one landmark should also be predictive for the other landmarks. This technique suggested removing the age variables.
+
+After modeling without the age variables, the linear model was still not a good fit for the majority of landmarks. However, for one landmark pair, l6\_cg, the linear model explains the asymmetry well (according to a model p-value of 0.0008). Significant effects were found from extractions, with an extraction increasing asymmetry on average by 0.5 mm and number of turns decreasing asymmetry by 0.03 mm per turn. However, across the linear models for all landmarks, the modeled effect of an extraction increased asymmetry on average by 0.28 mm and number of turns increased asymmetry by 0.01 mm per turn. Based on the agreement on effect of extractions and disagreement on effect of number of turns, I believe the interaction between extractions and asymmetry in movement is worth further investigation.
+
+# 3. Asymmetry in Angle Change
+
+We next look at the asymmetry in angles. To do this, we use the three pairs of angles provided, which are each based on three landmarks
+
+* angle for each side based on ans, pns, & jg,
+
+* angle for each side based on u6_furc, u6_mbcusp, & u6_ectomolare, and
+
+* angle for each side based on u6_furc, u6_pcusp, & u6_ectomolare.
+
+
+We refer to the absolute difference between the left and right corresponding angle as *angle asymmetry*. 
+
+## 3.1 Significant Angle Asymmetry
+
+We do not have a predetermined threshold for substantial angle symmetry (as we do in Section 2 for movement asymmetry). However, there is still error assumed to be in the angle measurements which will cause a non-negative asymmetry even for angles that are perfectly symmetric. Thus, in this section, we define substantial angle asymmetry to be asymmetry more than 5 degrees and, along with testing for substantial angle asymmetry, we also give confidence intervals for the average asymmetry for each angle.
+
+Figure 2 gives a plot of the angle measurements for the left-side versus the right-side. As before, dashed lines represent different levels of asymmetry, with the green line represents 0 degrees of asymmetry (no asymmetry), the orange line represents 5 degrees of asymmetry (substantial asymmetry), and the red line represents 15 degrees of asymmetry.
+
+```{r angle_plots, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side angles. The green line represents 0 degrees of asymmetry, the orange line 5 degrees, and the red line 15 degrees."}
+
+for (landmark_plot in 1:3){
+  plot(angles[ , 2*landmark_plot], angles[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,40), xlim = c(0,40), #axis
+       ylab = "Right Side", xlab = "Left Side", main = names(asym_angles)[landmark_plot + 1], #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 5, b = 1, lty = 2, col = "orange")
+  abline(a = 15, b = 1, lty = 2, col = "red")
+  abline(a = -5, b = 1, lty = 2, col = "orange")
+  abline(a = -15, b = 1, lty = 2, col = "red")
+}
+
+```
+
+Formally testing, we find that there is not sufficient evidence to claim that the average angle asymmetry is above 5 degrees for any of the three angle pairs. In fact, we have the following 95\% confidence intervals for each respective mean,
+
+* asymmetry of angles based on ans, pns, & jg: (0.88, 1.96),
+
+* asymmetry of angles based on u6_furc, u6_mbcusp, & u6_ectomolare: (2.49, 6.45), and
+
+* asymmetry of angles based on u6_furc, u6_pcusp, & u6_ectomolare: (2.48, 8.33).
+
+
+## 3.2 Modeling Angle Asymmetry
+
+Similarly to before, we can model the angle asymmetry as a linear function of patient descriptive variables. However, as before, the linear models are not a good fit. In fact, even after removing age from the model, no model fits well (smallest model p-value is 0.15 and no dependent variables are significant at the 0.05 level in any model). Details on all models ran can be found in the Rmarkdown file "planned_analysis_angles.Rmd".
+
+# 4. Chat GPT Statement
+
+Chat GPT was not used for this report.
+
+# Appendix A
+
+```{r all_landmark_plots_1, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold'}
+for (landmark_plot in 1:6){
+  plot(distances_sorted[ , 2*landmark_plot], distances_sorted[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,6), xlim = c(0,6), #axis
+       ylab = "Right Landmark", xlab = "Left Landmark", main = names(asym)[landmark_plot + 1], #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 1, b = 1, lty = 2, col = "orange")
+  abline(a = 2, b = 1, lty = 2, col = "red")
+  abline(a = -1, b = 1, lty = 2, col = "orange")
+  abline(a = -2, b = 1, lty = 2, col = "red")
+}
+```
+
+```{r all_landmark_plots_2, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold'}
+for (landmark_plot in 7:16){
+  plot(distances_sorted[ , 2*landmark_plot], distances_sorted[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,6), xlim = c(0,6), #axis
+       ylab = "Right Landmark", xlab = "Left Landmark", main = names(asym)[landmark_plot + 1], #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 1, b = 1, lty = 2, col = "orange")
+  abline(a = 2, b = 1, lty = 2, col = "red")
+  abline(a = -1, b = 1, lty = 2, col = "orange")
+  abline(a = -2, b = 1, lty = 2, col = "red")
+}
+```
+
+```{r all_landmark_plots_3, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side movement for all landmarks. The green line represents 0mm of asymmetry, the orange line 1mm, and the red line 2mm."}
+for (landmark_plot in 17:22){
+  plot(distances_sorted[ , 2*landmark_plot], distances_sorted[ , 2*landmark_plot + 1], #plots points
+       ylim = c(0,6), xlim = c(0,6), #axis
+       ylab = "Right Landmark", xlab = "Left Landmark", main = names(asym)[landmark_plot + 1], #labels
+       pch = 16, cex = .9) #point shape and size
+  
+  abline(a = 0, b = 1, lty = 2, col = "green") #dotted lines (lty = 2) with slope 'b' and y-intercept 'a'
+  abline(a = 1, b = 1, lty = 2, col = "orange")
+  abline(a = 2, b = 1, lty = 2, col = "red")
+  abline(a = -1, b = 1, lty = 2, col = "orange")
+  abline(a = -2, b = 1, lty = 2, col = "red")
+}
+```
+
+# Appendix B
+
+# Appendix C
+

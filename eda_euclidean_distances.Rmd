@@ -1,0 +1,112 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+My set-up chunk:
+```{r setup}
+library(readxl) #for reading excel
+```
+
+Read in the excel file of differences. This gives us T1-T2 values for each coordinate for each landmark as well as the euclidean distance of T1 and T2 for each landmark.
+```{r read_in_data}
+t1_minus_t2 <- read_excel("t1_minus_t2.xlsx")
+```
+
+This extracts the euclidean distances along with the patient identifiers.
+```{r just_distances}
+numcolmax <- length(t1_minus_t2[1, ]) #original number of columns
+distances <- as.data.frame(t1_minus_t2[ , c(1, seq(5, numcolmax, by = 4))]) #extracting, turning into dataframe
+
+#str(distances) #look at; I commented this out using "#"; you can remove this
+
+#columns were not in order (left and right were not necessarily beside each other); fixed using sort
+
+distances <- distances[ , c(1, order(names(distances[, 2:45])) + 1)] #sorting, not including the first column
+
+#str(distances) #look at; manually sorting it is; I commented this out using "#"; you can remove this
+
+distances_sorted <- distances[ , c(1:20, 22, 21, 23, 24, 27, 25, 28, 26, 29, 32, 35, 30, 33, 31, 34, 36, 40, 37, 41, 38, 42, 39, 43, 44, 45)]  #here I am sorting manually; this could be rearranged in excel as well before starting
+
+str(distances_sorted) #look at; it looks good now
+
+```
+We have 26 patients and 44 landmarks; there is missing data (coded as NA). It is not in order; so I sorted it
+
+This will be a basic exploratory analysis of distances.
+```{r eda}
+as.data.frame(cbind(minimum = sapply(distances_sorted,min, na.rm = TRUE), maximum =  sapply(distances_sorted,max, na.rm = TRUE), average = sapply(distances_sorted,mean, na.rm = TRUE), median = sapply(distances_sorted,median, na.rm = TRUE))) #summary statistics
+```
+
+Note that the median < mean for most landmarks suggesting a right skew (right tail)
+
+Now let's look at asymmetries
+```{r compute_asymmetries}
+asym <- distances_sorted[ , 1]
+for (landmark in 1:22){
+   asym <- as.data.frame(cbind(asym, as.vector(abs(distances_sorted[, (2*landmark)] - distances_sorted[, (2*landmark + 1)]))))
+}
+
+names(asym) <- names(distances_sorted[ , c(1, seq(2, 44, by = 2))])
+```
+
+This will be a basic exploratory analysis of asymmetries.
+```{r eda_asymmetries}
+as.data.frame(cbind(minimum = sapply(asym, min, na.rm = TRUE), maximum =  sapply(asym, max, na.rm = TRUE), average = sapply(asym, mean, na.rm = TRUE), median = sapply(asym, median, na.rm = TRUE))) #summary statistics
+```
+
+Now, note that the sample average of asymmetries for many landmarks is not over 2mm; thus for each of these, we will not be able to say that the average asymmetry is significantly greater than 2mm. We are left with 2 landmarks with average asymmetry over 2mm; however, they seem to have some outliers (looking at the maximums). Is this a data entry error? Looking at the medians, I highly doubt we will find anything that is both significant and not driven by these outliers.
+
+Because of this, I will most likely change the analysis to looking at 1mm difference because the choice of the 2mm threshold was arbitrary.
+
+I want to take a closer look at the two landmarks with the outliers. Here is a boxplot for each.
+
+```{r landmarks_with_outliers}
+
+boxplot(asym$k_l_dist)
+
+print(asym$k_l_dist)
+
+boxplot(asym$u6_l_furc_dist)
+
+print(asym$u6_l_furc_dist)
+
+```
+
+```{r}
+#This below is no longer needed. This is where I manually removed the data with errors (the extreme outliers)
+
+# distances_sorted$k_r_dist[22] <- NA #replacing extreme outlier with NA
+# 
+# distances_sorted$k_l_dist[22] <- NA #paired observation
+# 
+# distances_sorted$u6_l_furc_dist[19] <- NA #replacing extreme outlier with NA
+# 
+# distances_sorted$u6_r_furc_dist[19] <- NA #paired observation
+
+```
+
+```{r eda_NAs}
+as.data.frame(cbind(minimum = sapply(distances_sorted,min, na.rm = TRUE), maximum =  sapply(distances_sorted,max, na.rm = TRUE), average = sapply(distances_sorted,mean, na.rm = TRUE), median = sapply(distances_sorted,median, na.rm = TRUE))) #summary statistics
+```
+
+Those two outliers are very extreme. My belief is that they are data-entry errors. 90mm for example is about 3 1/2 inches.
+
+Now let's look at asymmetries
+```{r compute_asymmetries_NAs}
+asym <- distances_sorted[ , 1]
+for (landmark in 1:22){
+   asym <- as.data.frame(cbind(asym, as.vector(abs(distances_sorted[, (2*landmark)] - distances_sorted[, (2*landmark + 1)]))))
+}
+
+names(asym) <- names(distances_sorted[ , c(1, seq(2, 44, by = 2))])
+```
+
+This will be a basic exploratory analysis of asymmetries.
+```{r eda_asymmetries_NAs}
+as.data.frame(cbind(minimum = sapply(asym, min, na.rm = TRUE), maximum =  sapply(asym, max, na.rm = TRUE), average = sapply(asym, mean, na.rm = TRUE), median = sapply(asym, median, na.rm = TRUE))) #summary statistics
+```
+
+
+
