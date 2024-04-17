@@ -89,7 +89,7 @@ names(asym_angles) <- names(angles[ , c(1, seq(2, 6, by = 2))])
 ```
 # 1. Overview
 
-This report focuses on teeth asymmetry caused by MARPE, a surgical treatment used to dsafjskajfk. Within this report, we focus on the asymmetry of each patient's left side change verses right side change resulting from treatment. This change is measured in both euclidean distance and in angles which was provided by the client.
+This report focuses on teeth asymmetry caused by MARPE, a non-surgical treatment used to expand the upper jaw. Within this report, we focus on the asymmetry of each patient's left side change verses right side change resulting from treatment. This change is measured in both euclidean distance and in angles which was provided by the client.
 
 The necessary data for this planned analysis, descriptive variables of each patient, euclidean distances, and angles, were isolated from the excel workbook proved. The data used can be found in the github repository under the excel sheet 'demographics.xlxs', 't1\_minus\_t2.xlsx', and 'angles.xlxs', respectively. The data found here is the corrected data discussed through email. Also as discussed, all r code used in the analysis can be found on the github repository as well along with comments on how to adapt the code for future data. A quick description of the rmarkdown files can be found in Appendix C.
 
@@ -127,7 +127,7 @@ Asymmetry is considered substantial if it is more than 2mm. We will test if ther
 
 As discussed in Section 1, there is believed to be some uncertainty in the identification of landmarks, and thus uncertainty in the measurement of movements. Because of this, and because of practical significance, we will consider 2mm to be the threshold for substantial asymmetry. 
 
-In Figure 1 below, asymmetry is explored graphically. The landmark pairs with the lowest and highest average asymmetry are displayed. This corresponds to the landmarks labeled "fsfd" and "fdsafds", respectively. Each point on the figure corresponds to a patient with the x-coordinate corresponding with the left side movement and the y-coordinate corresponding with the right side movement.
+In Figure 1 below, asymmetry is explored graphically. The landmark pairs with the lowest and highest average asymmetry are displayed. This corresponds to the landmarks labeled "l3_cusp" and "u4_ectopremolare", respectively. Each point on the figure corresponds to a patient with the x-coordinate corresponding with the left side movement and the y-coordinate corresponding with the right side movement.
 
 ```{r two_landmark_plots, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side movement for landmarks with lowest average asymmetry (left) and highest average asymmetry (right). The green line represents 0mm of asymmetry, the orange line 1mm, and the red line 2mm."}
 for (landmark_plot in c(5)){
@@ -288,4 +288,14 @@ for (landmark_plot in 17:22){
 # Appendix B
 
 # Appendix C
+
+The github repository can be found [here](https://github.com/smithmor/STOR765_Spring2024_Asymmetry_Project.git).
+
+This repository contains the cleaned data as three excel files 'demographics.xlxs', 't1\_minus\_t2.xlsx', and 'angles.xlxs' which are referred to and used in the r-code.
+
+The r-code used for analysis can be found in the files 'eda_euclidean_distances.Rmd', 'planned_analysis_euclidean_distances.Rmd', 'eda_angles.Rmd', 'planned_analysis_angles.Rmd'. Each "eda" file (exploratory data analysis) contains a quick exploratory analysis of the data including some summary statistics and comments on how the formal analysis can be expected to perform. The formal analysis can be found in the "planned_analysis" files. All files contain comments on why certain steps were done along and should be a quick adaption to new datasets.
+
+Finally, there are files used to create and display this report within the repository 'asymmetry_report.Rmd' and 'asymmetry_report.pdf', respectively.
+
+
 
