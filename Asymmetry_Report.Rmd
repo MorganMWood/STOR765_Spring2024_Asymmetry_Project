@@ -6,13 +6,13 @@ author:
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
 abstract: |
-  This report aims to investigate left-side versus right-side teeth asymmetry caused by miniscrew-assisted rapid palatal expansion (MARPE). Using data provided, this analysis
+  This report aims to investigate left side versus right side teeth asymmetry caused by miniscrew-assisted rapid palatal expansion (MARPE). Using data provided, this analysis
   
   (1) Provides evidence that there is not substantial asymmetry cause by MARPE,
   
   (2) Suggests that the measurement error caused while locating landmarks is small, and
   
-  (3) Suggests further research into the relationship of teeth extraction and asymmetry.
+  (3) Suggests further researching the relationship of teeth extraction and asymmetry.
 ---
 
 ```{r setup, include=FALSE}
@@ -103,11 +103,11 @@ Data from 26 patients is analyzed which consists of, for each patient,
 
 * three paired angle (rotation) measurements (6 angles total).
 
-(Comment for presentation: The client was supposed to send over euclidean distances (movements) and angle measurements; He sent over a huge spreadsheet with all kinds of things including dot products of landmarks' location pre and post treatment, which I think he believed was angles? There was also rotation measurements which were angles, so I used this as my "angles" for analysis. )
+(Comment for presentation: The client was supposed to send over euclidean distances (movements) and angle measurements; He sent over a huge spreadsheet with all kinds of things including dot products of landmarks' location pre and post treatment, which I think he believed was angles? There was also rotation measurements which were angles, so I used this as my ''angles" for analysis. )
 
 We begin with looking at asymmetry in euclidean distances in Section 2 and then look at asymmetry in angles in Section 3. Each section looks first to measure the amount of average asymmetry using either statistical tests or confidence intervals. Each identifying of a landmark is known to possibly be inaccurate. Thus, some measured asymmetry between the left and right side may be due to measurement error rather than true asymmetry. Thus, we will be testing for substantial asymmetry (defined in Section 2 for euclidean distances and Section 3 for angles). Finally, asymmetry is modeled using the descriptive variables for each patient.
 
-This report concludes with a three-part Appendix. Appendix A contains extra figures which are referenced during the main report. Appendix B contains a discussion of the permutation tests we originally planned and the "washing out" worry that was discussed through email. Finally, Appendix C contains a short description of the files in the github repository.
+This report concludes with a three-part Appendix. Appendix A contains extra figures which are referenced during the main report. Appendix B contains a discussion of the permutation tests we originally planned and the ''washing out" worry that was discussed through email. Finally, Appendix C contains a short description of the files in the github repository.
 
 
 # 2. Asymmetry in Movement Change
@@ -127,7 +127,7 @@ Asymmetry is considered substantial if it is more than 2mm. We will test if ther
 
 As discussed in Section 1, there is believed to be some uncertainty in the identification of landmarks, and thus uncertainty in the measurement of movements. Because of this, and because of practical significance, we will consider 2mm to be the threshold for substantial asymmetry. 
 
-In Figure 1 below, asymmetry is explored graphically. The landmark pairs with the lowest and highest average asymmetry are displayed. This corresponds to the landmarks labeled "l3_cusp" and "u4_ectopremolare", respectively. Each point on the figure corresponds to a patient with the x-coordinate corresponding with the left side movement and the y-coordinate corresponding with the right side movement.
+In Figure 1 below, asymmetry is explored graphically. The landmark pairs with the lowest and highest average asymmetry are displayed. This corresponds to the landmarks labeled ''l3_cusp" and ''u4_ectopremolare", respectively. Each point on the figure corresponds to a patient with the x-coordinate corresponding with the left side movement and the y-coordinate corresponding with the right side movement.
 
 ```{r two_landmark_plots, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side movement for landmarks with lowest average asymmetry (left) and highest average asymmetry (right). The green line represents 0mm of asymmetry, the orange line 1mm, and the red line 2mm."}
 for (landmark_plot in c(5)){
@@ -158,7 +158,7 @@ for (landmark_plot in c(16)){
 
 Within Figure 1, dotted lines represent different thresholds of asymmetry. The green line represents 0mm of asymmetry (no asymmetry), the orange line represents 1mm of asymmetry, and the red line represents 2mm of asymmetry (substantial asymmetry). Figures for all landmarks can be found in Appendix A.
 
-We see that few observations make the threshold for substantial asymmetry.In fact, we find that every landmark pair has average asymmetry less than the 2mm substantial asymmetry threshold. The highest average asymmetry was from the landmark pair "u4_ectopremolare" with average asymmetry of 1.53mm and the lowest average asymmetry was from the landmark pair "l3_cusp" with average asymmetry 0.34mm.
+We see that few observations make the threshold for substantial asymmetry.In fact, we find that every landmark pair has average asymmetry less than the 2mm substantial asymmetry threshold. The highest average asymmetry was from the landmark pair ''u4_ectopremolare" with average asymmetry of 1.53mm and the lowest average asymmetry was from the landmark pair ''l3_cusp" with average asymmetry 0.34mm.
 
 As the average asymmetry for each sample is less than 2mm, we will not find significant evidence that there is substantial asymmetry for any landmark pair. In fact, even if the threshold for substantial asymmetry was reduced to 1mm, there is still not significant evidence. (The lowest p-value when testing if the average asymmetry is above 1mm is 0.0048 while a p-value of below 0.0023 would signal significant asymmetry after adjusting for multiple tests.)
 
@@ -179,7 +179,7 @@ It is worth noting that the age pre-treatment and age post-treatment are highly 
 
 Additionally, the categorical variables PMD left & right (in agreement in 25 out of 26 patients), and left & right posterior TAD \#cortices (in agreement in 20 out of 26 patients) are also correlated. For these variables, the right measurements were removed from the model.
 
-We find that, in general, a linear model based on these descriptive variables is not a good fit for modeling asymmetry. There were no models with a p-value under 0.01, with the majority of p-values over 0.4. After adjusting for multiple tests, a p-value of 0.0023 is desirable evidence for a good fit. Full details on the model can be found in the "planned\_analysis\_euclidean\_distances.Rmd" file.
+We find that, in general, a linear model based on these descriptive variables is not a good fit for modeling asymmetry. There were no models with a p-value under 0.01, with the majority of p-values over 0.4. After adjusting for multiple tests, a p-value of 0.0023 is desirable evidence for a good fit. Full details on the model can be found in the ''planned\_analysis\_euclidean\_distances.Rmd" file.
 
 Given the poor fit, we next attempt to remove variables that do not explain the asymmetry in order to get a better fitting model. To do this, we use a backwards selection technique based on the average p-values of covariates across all models. This was the chosen technique as it is intuitive that what patient descriptive variables are predictive for the asymmetry of one landmark should also be predictive for the other landmarks. This technique suggested removing the age variables.
 
@@ -202,7 +202,7 @@ We refer to the absolute difference between the left and right corresponding ang
 
 We do not have a predetermined threshold for substantial angle symmetry (as we do in Section 2 for movement asymmetry). However, there is still error assumed to be in the angle measurements which will cause a non-negative asymmetry even for angles that are perfectly symmetric. Thus, in this section, we define substantial angle asymmetry to be asymmetry more than 5 degrees and, along with testing for substantial angle asymmetry, we also give confidence intervals for the average asymmetry for each angle.
 
-Figure 2 gives a plot of the angle measurements for the left-side versus the right-side. As before, dashed lines represent different levels of asymmetry, with the green line represents 0 degrees of asymmetry (no asymmetry), the orange line represents 5 degrees of asymmetry (substantial asymmetry), and the red line represents 15 degrees of asymmetry.
+Figure 2 gives a plot of the angle measurements for the left side versus the right side. As before, dashed lines represent different levels of asymmetry, with the green line represents 0 degrees of asymmetry (no asymmetry), the orange line represents 5 degrees of asymmetry (substantial asymmetry), and the red line represents 15 degrees of asymmetry.
 
 ```{r angle_plots, echo=FALSE, fig.align = 'center', out.width = "40%", fig.show='hold', fig.cap="Left versus right side angles. The green line represents 0 degrees of asymmetry, the orange line 5 degrees, and the red line 15 degrees."}
 
@@ -232,7 +232,7 @@ Formally testing, we find that there is not sufficient evidence to claim that th
 
 ## 3.2 Modeling Angle Asymmetry
 
-Similarly to before, we can model the angle asymmetry as a linear function of patient descriptive variables. However, as before, the linear models are not a good fit. In fact, even after removing age from the model, no model fits well (smallest model p-value is 0.15 and no dependent variables are significant at the 0.05 level in any model). Details on all models ran can be found in the Rmarkdown file "planned_analysis_angles.Rmd".
+Similarly to before, we can model the angle asymmetry as a linear function of patient descriptive variables. However, as before, the linear models are not a good fit. In fact, even after removing age from the model, no model fits well (smallest model p-value is 0.15 and no dependent variables are significant at the 0.05 level in any model). Details on all models ran can be found in the Rmarkdown file ''planned_analysis_angles.Rmd".
 
 # 4. Chat GPT Statement
 
@@ -287,13 +287,19 @@ for (landmark_plot in 17:22){
 
 # Appendix B
 
+The original plan of analysis listed testing to see if the average movement of the left side is equal to the average movement of the right side (as a vector analysis). However, this analysis would not capture the desired characteristic of ''asymmetry". It is possible for the average movement of the left and right side to be the same (i.e. $(d^l_{j, .})_{j=1,\dots, 22}=(d^r_{j, .})_{j=1,\dots, 22}$) , but for them to not be aligned in such a way that the movement is symmetric (i.e., $(A_{j, .})_{j=1,\dots, 22}=0$) which is what we would like to test for. This is the "washing out" that we discussed in emails. We avoid this washing out by testing on observations of asymmetries $A_{j, n}$ rather than observations of movements $d^l_{j, .}$ and $d^r_{j, .}$.
+
+Further, there is ambiguity in what should be tested. Two options would be to either test if the movement is asymmetric (i.e. $(A_{j, .})_{j=1,\dots, 22}\neq 0$) or to test if the asymmetry is more than 2mm different (substantial asymmetry) in every landmark (i.e. $(A_{j, .})_{j=1,\dots, 22}\geq \bar{2}$). By the same argument in Section 1, because of measurement errors and practical significance, I would consider the second a better option. However, as the sample averages for each of the landmarks are all under 2, testing if there is  substantial asymmetry will result in not enough evidence to conclude that there is asymmetry just as in Section 2.
+
+The same discussion above can be applied to the angle measurements. However, it is worth noting that most tests that look at these measurements as a vector (rather than separately as we did in the main report), gain their power from assuming equal variance. However, looking at Figure 2, it appears that this assumption is not valid when it comes to the angle asymmetry measurements.
+
 # Appendix C
 
 The github repository can be found [here](https://github.com/smithmor/STOR765_Spring2024_Asymmetry_Project.git).
 
 This repository contains the cleaned data as three excel files 'demographics.xlxs', 't1\_minus\_t2.xlsx', and 'angles.xlxs' which are referred to and used in the r-code.
 
-The r-code used for analysis can be found in the files 'eda_euclidean_distances.Rmd', 'planned_analysis_euclidean_distances.Rmd', 'eda_angles.Rmd', 'planned_analysis_angles.Rmd'. Each "eda" file (exploratory data analysis) contains a quick exploratory analysis of the data including some summary statistics and comments on how the formal analysis can be expected to perform. The formal analysis can be found in the "planned_analysis" files. All files contain comments on why certain steps were done along and should be a quick adaption to new datasets.
+The r-code used for analysis can be found in the files 'eda_euclidean_distances.Rmd', 'planned_analysis_euclidean_distances.Rmd', 'eda_angles.Rmd', 'planned_analysis_angles.Rmd'. Each ''eda" file (exploratory data analysis) contains a quick exploratory analysis of the data including some summary statistics and comments on how the formal analysis can be expected to perform. The formal analysis can be found in the ''planned_analysis" files. All files contain comments on why certain steps were done along and should be a quick adaption to new datasets.
 
 Finally, there are files used to create and display this report within the repository 'asymmetry_report.Rmd' and 'asymmetry_report.pdf', respectively.
 
