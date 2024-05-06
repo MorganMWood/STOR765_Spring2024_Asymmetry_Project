@@ -152,6 +152,16 @@ I now run a regression model to predict the absolute asymmetry within each landm
 ```{r regression_models}
 pvalues_coeff <- vector(mode = "numeric", length = 10)
 coeff <- vector(mode = "numeric", length = 10)
+pvalues_models <- vector(mode = "numeric", length = 22)
+
+
+lmp <- function (modelobject) {
+	if (class(modelobject) != "lm") stop("Not an object of class 'lm' ")
+	f <- summary(modelobject)$fstatistic
+	p <- pf(f[1],f[2],f[3],lower.tail=F)
+	attributes(p) <- NULL
+	return(p)
+}
 
 for (landmark in 12:33) {
 
@@ -159,6 +169,8 @@ for (landmark in 12:33) {
   first_model <- lm(demographics[, landmark] ~ . + `T1 age`:`T2 age`-`PMD right`-`right posterior TAD # cortices`, data = small_dataset)
 
   print(summary(first_model))
+  
+  pvalues_models[landmark-11] <- lmp(first_model)
   
   pvalues_coeff <- cbind(pvalues_coeff, summary(first_model)$coefficients[,4])
   
@@ -169,6 +181,7 @@ for (landmark in 12:33) {
 rowSums(pvalues_coeff)
 rowSums(coeff)/22
 
+pvalues_models
 ```
 
 Just to try it, I next try a backwards selection technique based on the sum of the p-values. This is not common practice, and is more of an exploratory measure.
